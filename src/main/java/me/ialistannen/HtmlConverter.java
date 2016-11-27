@@ -1,8 +1,5 @@
 package me.ialistannen;
 
-import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -25,6 +22,12 @@ public class HtmlConverter {
     private MapperCollection mappers;
     private ConverterStorage converterStorage;
 
+    /**
+     * Creates a new HTML to Markdown converter
+     *
+     * @param htmlCode The HTML code to parse
+     * @param mappers The {@link Mapper}s to use for converting HTML tags to markdown
+     */
     public HtmlConverter(String htmlCode, MapperCollection mappers) {
         this.htmlCode = "<root>" + htmlCode + "</root>";
         this.mappers = mappers;
@@ -32,8 +35,15 @@ public class HtmlConverter {
         converterStorage = new ConverterStorage();
     }
 
-    public void parse() {
-        Document document = Jsoup.parse(htmlCode, "https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/inventory/InventoryDragEvent.html");
+    /**
+     * Parses the HTML
+     *
+     * @param baseUrl The base url of the website. Used to resolve Links
+     *
+     * @return The parsed String
+     */
+    public String parse(String baseUrl) {
+        Document document = Jsoup.parse(htmlCode, baseUrl);
 
         Element html = document.child(0);
 
@@ -44,14 +54,21 @@ public class HtmlConverter {
                   .map(wrappedElement -> wrappedElement.getWrapped().tagName() + " '" + wrappedElement.getReplacedContent() + "'")
                   .collect(Collectors.counting()));
         WrappedElement last = flatten.get(flatten.size() - 1);
-        System.out.println("Last: " + last.getWrapped().tagName() + "\t> " + converterStorage.getReplacement(last.getWrapped()));
 
         String result = Parser.unescapeEntities(converterStorage.getReplacement(last.getWrapped()), true);
-        StringSelection selection = new StringSelection(result);
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.setContents(selection, selection);
+        //        StringSelection selection = new StringSelection(result);
+        //        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        //        clipboard.setContents(selection, selection);
+        return result;
     }
 
+    /**
+     * Breath First Search (in order traversal) to flatten the tree
+     *
+     * @param input The tree root
+     *
+     * @return The flattened tree
+     */
     private List<WrappedElement> flatten(Element input) {
         Stack<Element> inputQueue = new Stack<>();
         Queue<WrappedElement> outputQueue = new LinkedList<>();
@@ -73,6 +90,11 @@ public class HtmlConverter {
         return new ArrayList<>(outputQueue);
     }
 
+    /**
+     * Some test code
+     *
+     * @param args The VM args
+     */
     public static void main(String[] args) {
         String code = "<li class=\"blockList\">\n"
                   + "<h4>valueOf</h4>\n"
@@ -94,6 +116,7 @@ public class HtmlConverter {
         }
 
         HtmlConverter converter = new HtmlConverter(code, collection);
-        converter.parse();
+        String result = converter.parse("base url for link resolving");
+        System.out.println(result);
     }
 }
