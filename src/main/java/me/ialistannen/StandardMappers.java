@@ -60,14 +60,26 @@ public enum StandardMappers implements Mapper {
         @Override
         public boolean matches(WrappedElement element) {
             Element wrapped = element.getWrapped();
-            return !(!wrapped.tagName().equalsIgnoreCase("a") || !wrapped.hasAttr("href"));
+            if(wrapped.tagName().equalsIgnoreCase("a")) {
+                System.out.println("Found a " + wrapped);
+            }
+            return wrapped.tagName().equalsIgnoreCase("a") && wrapped.hasAttr("href");
         }
 
         @Override
         public String convert(String input, WrappedElement context) {
             Element wrapped = context.getWrapped();
+
+            
             String target = wrapped.absUrl("href");
             String name = context.getConverterStorage().getReplacement(wrapped);
+
+            // just links in code
+            for (Element element : wrapped.parents()) {
+                if(element.tagName().equalsIgnoreCase("code")) {
+                    return name;
+                }
+            }
 
             return "[" + name + "](" + target + ")";
         }
@@ -92,21 +104,10 @@ public enum StandardMappers implements Mapper {
         }
         return "`" + html + "`";
     }),
-    HEADING("h", (html) -> html) {
+    HEADING("h", (html) -> ITALIC.convert(BOLD.convert(html))) {
         @Override
         public boolean matches(String htmlTag) {
             return htmlTag.matches("h[0-4]");
-        }
-
-        @Override
-        public String convert(String input, WrappedElement context) {
-            int type = Integer.parseInt(context.getWrapped().tagName().substring(1));
-            StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < type; i++) {
-                builder.append("+");
-            }
-            builder.append(" ").append(input);
-            return builder.toString();
         }
     },
     SPAN("span", html -> html),
