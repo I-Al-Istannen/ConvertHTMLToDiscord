@@ -40,6 +40,7 @@ public enum StandardMappers implements Mapper {
                 builder.append(replaced);
             }
 
+            builder.append("\n\n");
             return builder.toString();
         }
     },
@@ -54,7 +55,7 @@ public enum StandardMappers implements Mapper {
             return context.getWrapped().attr("checked").equalsIgnoreCase("checked") ? "[X]" : "[ ]";
         }
     },
-    PARAGRAPH("p", html -> "\n"),
+    PARAGRAPH("p", html -> "\n" + html),
     LINK("a", html -> html) {
         @Override
         public boolean matches(WrappedElement element) {
@@ -67,11 +68,51 @@ public enum StandardMappers implements Mapper {
             Element wrapped = context.getWrapped();
             String target = wrapped.absUrl("href");
             String name = context.getConverterStorage().getReplacement(wrapped);
-            
+
             return "[" + name + "](" + target + ")";
         }
     },
-    CODE("code", (html) -> "`" + html + "`");
+    DIV("div", html -> "\n\n" + html + "\n\n"),
+    PRE("pre", html -> html) {
+        @Override
+        public String convert(String input, WrappedElement context) {
+            Element wrapped = context.getWrapped();
+            String wrappedText = context.getConverterStorage().getReplacement(wrapped);
+
+            if (wrapped.getElementsByTag("code").isEmpty()) {
+                return CODE.convert(wrappedText);
+            }
+
+            return wrappedText;
+        }
+    },
+    CODE("code", (html) -> {
+        if (html.contains("\n")) {
+            return "\n```\n" + html + "\n```\n";
+        }
+        return "`" + html + "`";
+    }),
+    HEADING("h", (html) -> html) {
+        @Override
+        public boolean matches(String htmlTag) {
+            return htmlTag.matches("h[0-4]");
+        }
+
+        @Override
+        public String convert(String input, WrappedElement context) {
+            int type = Integer.parseInt(context.getWrapped().tagName().substring(1));
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < type; i++) {
+                builder.append("+");
+            }
+            builder.append(" ").append(input);
+            return builder.toString();
+        }
+    },
+    SPAN("span", html -> html),
+    DESCRIPTION_LIST("dl", html -> html),
+    DESCRIPTION_TAG("dt", html -> BOLD.convert(html) + "\n"),
+    DESCRIPTION_DESCRIPTION("dd", html -> "\t" + html);
 
     private Predicate<String>        htmlIdentifier;
     private Function<String, String> converter;

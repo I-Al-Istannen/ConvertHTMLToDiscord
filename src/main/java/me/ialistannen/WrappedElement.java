@@ -52,6 +52,7 @@ public class WrappedElement {
                 html = matcher.replaceFirst(replacement);
             }
         }
+        System.out.println(wrapped.tagName() + "\t> " + html);
 
         converterStorage.setReplacement(wrapped, html);
         html = replace(html);
