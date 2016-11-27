@@ -1,5 +1,6 @@
 package me.ialistannen;
 
+import java.util.Arrays;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -12,7 +13,7 @@ import org.jsoup.select.Elements;
 public enum StandardMappers implements Mapper {
 
     ROOT("root", (html) -> html),
-    BOLD("b", html -> "**" + html + "**"),
+    BOLD(html -> "**" + html + "**", "b", "strong"),
     ITALIC("i", html -> "_" + html + "_"),
     LIST_ITEM("li", html -> html),
     LIST("ul", html -> html) {
@@ -60,9 +61,6 @@ public enum StandardMappers implements Mapper {
         @Override
         public boolean matches(WrappedElement element) {
             Element wrapped = element.getWrapped();
-            if(wrapped.tagName().equalsIgnoreCase("a")) {
-                System.out.println("Found a " + wrapped);
-            }
             return wrapped.tagName().equalsIgnoreCase("a") && wrapped.hasAttr("href");
         }
 
@@ -70,13 +68,12 @@ public enum StandardMappers implements Mapper {
         public String convert(String input, WrappedElement context) {
             Element wrapped = context.getWrapped();
 
-            
             String target = wrapped.absUrl("href");
             String name = context.getConverterStorage().getReplacement(wrapped);
 
             // just links in code
             for (Element element : wrapped.parents()) {
-                if(element.tagName().equalsIgnoreCase("code")) {
+                if (element.tagName().equalsIgnoreCase("code")) {
                     return name;
                 }
             }
@@ -84,19 +81,25 @@ public enum StandardMappers implements Mapper {
             return "[" + name + "](" + target + ")";
         }
     },
-    DIV("div", html -> "\n\n" + html + "\n\n"),
-    PRE("pre", html -> html) {
+    A_NAME("a", html -> html) {
         @Override
-        public String convert(String input, WrappedElement context) {
-            Element wrapped = context.getWrapped();
-            String wrappedText = context.getConverterStorage().getReplacement(wrapped);
-
-            if (wrapped.getElementsByTag("code").isEmpty()) {
-                return CODE.convert(wrappedText);
-            }
-
-            return wrappedText;
+        public boolean matches(WrappedElement element) {
+            return element.getWrapped().tagName().equalsIgnoreCase("a") && element.getWrapped().hasAttr("name");
         }
+    },
+    DIV("div", html -> "\n" + html),
+    PRE("pre", html -> html) {
+        //        @Override
+        //        public String convert(String input, WrappedElement context) {
+        //            Element wrapped = context.getWrapped();
+        //            String wrappedText = context.getConverterStorage().getReplacement(wrapped);
+        //
+        //            if (wrapped.getElementsByTag("code").isEmpty()) {
+        //                return CODE.convert(wrappedText);
+        //            }
+        //
+        //            return wrappedText;
+        //        }
     },
     CODE("code", (html) -> {
         if (html.contains("\n")) {
@@ -112,8 +115,24 @@ public enum StandardMappers implements Mapper {
     },
     SPAN("span", html -> html),
     DESCRIPTION_LIST("dl", html -> html),
-    DESCRIPTION_TAG("dt", html -> BOLD.convert(html) + "\n"),
-    DESCRIPTION_DESCRIPTION("dd", html -> "\t" + html);
+    DESCRIPTION_TAG("dt", html -> html) {
+        @Override
+        public String convert(String input, WrappedElement context) {
+            if (!context.getWrapped().getElementsByTag("b").isEmpty()
+                      || !context.getWrapped().getElementsByTag("strong").isEmpty()) {
+                return input;
+            }
+            return BOLD.convert(input);
+        }
+    },
+    DESCRIPTION_DESCRIPTION("dd", html -> repeat(" ", 3) + html) {
+        @Override
+        public String convert(String input, WrappedElement context) {
+            return repeat(" ", 3) + input;
+        }
+    },
+    LINE_BREAK("br", html -> "\n" + html),
+    HORIZONTAL_LINE("hr", html -> repeat("-", 20) + html);
 
     private Predicate<String>        htmlIdentifier;
     private Function<String, String> converter;
@@ -125,6 +144,19 @@ public enum StandardMappers implements Mapper {
 
     StandardMappers(String tag, Function<String, String> converter) {
         this(s -> s.equalsIgnoreCase(tag), converter);
+    }
+
+    StandardMappers(Function<String, String> converter, String... tags) {
+        this(s -> Arrays.stream(tags).map(String::toLowerCase).anyMatch(s1 -> s1.equalsIgnoreCase(s)), converter);
+    }
+
+    private static String repeat(String string, int amount) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < amount; i++) {
+            builder.append(string);
+        }
+
+        return builder.toString();
     }
 
     @Override
