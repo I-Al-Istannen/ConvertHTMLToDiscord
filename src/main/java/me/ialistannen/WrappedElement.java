@@ -12,12 +12,14 @@ import org.jsoup.nodes.Element;
 public class WrappedElement {
     private ConverterStorage converterStorage;
     private MapperCollection mappers;
+    private ContextMetadata  metadata;
     private Element          wrapped;
 
-    public WrappedElement(Element element, ConverterStorage converterStorage, MapperCollection mappers) {
+    public WrappedElement(Element element, ConverterStorage converterStorage, MapperCollection mappers, ContextMetadata metadata) {
         this.wrapped = element;
         this.converterStorage = converterStorage;
         this.mappers = mappers;
+        this.metadata = metadata;
     }
 
     public Element getWrapped() {
@@ -30,6 +32,13 @@ public class WrappedElement {
 
     public MapperCollection getMappers() {
         return mappers;
+    }
+
+    /**
+     * @return The metadata for this element
+     */
+    public ContextMetadata getMetadata() {
+        return metadata;
     }
 
     public String getReplacedContent() {
