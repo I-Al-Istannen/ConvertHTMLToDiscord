@@ -106,11 +106,13 @@ public enum StandardMappers implements Mapper {
     },
     CODE("code", (html) -> {
         if (html.contains("\n")) {
-            return "\n```\n" + html + "\n```\n";
+            String prefix = "\n```" + (html.startsWith("\n") ? "" : "\n");
+            String suffix = (html.endsWith("\n") ? "" : "\n") + "```" + "\n";
+            return prefix + html + suffix;
         }
         return "`" + html + "`";
     }),
-    HEADING("h", (html) -> ITALIC.convert(BOLD.convert(html))) {
+    HEADING("h", (html) -> ITALIC.convert(BOLD.convert(html)) + "\n") {
         @Override
         public boolean matches(String htmlTag) {
             return htmlTag.matches("h[0-4]");
@@ -207,7 +209,15 @@ public enum StandardMappers implements Mapper {
                     builder.append(replacement);
                     builder.append("|");
                 }
-                builder.append("\n");
+                if (!cells.isEmpty() && cells.get(0).tagName().equalsIgnoreCase("th")) {
+                    builder.append("\n");
+                    builder.append(StandardMappers.repeat("=", columnLength.stream().mapToInt(Integer::intValue).sum() + 4));
+                    builder.append("\n");
+                } else {
+                    builder.append("\n");
+                    builder.append(StandardMappers.repeat("-", columnLength.stream().mapToInt(Integer::intValue).sum() + 4));
+                    builder.append("\n");
+                }
             }
 
             return CODE.convert(builder.toString());
@@ -276,9 +286,9 @@ public enum StandardMappers implements Mapper {
      */
     private static String padToLength(String string, char paddingChar, int length) {
         String result = string.trim();
-        
+
         result = Parser.unescapeEntities(result, false);
-        
+
         if (result.length() >= length) {
             return result;
         }
