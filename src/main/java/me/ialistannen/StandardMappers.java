@@ -1,14 +1,21 @@
 package me.ialistannen;
 
+import static me.ialistannen.util.StringUtils.repeat;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.jsoup.nodes.Element;
-import org.jsoup.parser.Parser;
+import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
+
+import me.ialistannen.util.TableCreator;
+import me.ialistannen.util.TableCreator.Column;
+import me.ialistannen.util.TableCreator.RowSeparator;
 
 /**
  * The standard mappers
@@ -149,78 +156,52 @@ public enum StandardMappers implements Mapper {
         @Override
         public String convert(String input, WrappedElement context) {
             Element wrapped = context.getWrapped();
-            ConverterStorage converterStorage = context.getConverterStorage();
 
-            List<Integer> columnLength = new ArrayList<>();
+            TableCreator tableCreator = new TableCreator(() -> " | ", 55);
 
-            // CALCULATE COLUMN SIZES
-            // rows
+            // loop through rows
             for (Element element : wrapped.getElementsByTag("tr")) {
                 Elements cells = element.getElementsByTag("th");
                 cells.addAll(element.getElementsByTag("td"));
 
+                RowSeparator rowSeparator = length -> {
+                    if (element.getElementsByTag("th").isEmpty()) {
+                        return repeat("-", length);
+                    }
+                    return repeat("=", length);
+                };
+
+                Collection<Column> columns = new ArrayList<>();
+
                 // cells
-                for (int i = 0; i < cells.size(); i++) {
-                    Element cell = cells.get(i);
+                //noinspection Convert2streamapi
+                for (Element cell : cells) {
+                    columns.add(() -> getText(cell));
+                }
 
-                    String replacement = converterStorage.getReplacement(cell);
-                    if (!cell.getElementsByTag("a").isEmpty()) {
-                        if (cell.getElementsByTag("a").stream().anyMatch(element1 -> element1.hasAttr("href"))) {
-                            replacement = cell.text();
-                        }
+                tableCreator.addLine(rowSeparator, columns);
+            }
+
+            return CODE.convert(tableCreator.build().print());
+        }
+
+        String getText(Element parentElement) {
+            String working = "";
+            for (Node child : parentElement.childNodes()) {
+                if (child instanceof TextNode) {
+                    working += ((TextNode) child).getWholeText();
+                }
+                if (child instanceof Element) {
+                    Element childElement = (Element) child;
+                    // do more of these for p or other tags you want a new line for
+                    if (childElement.tag().getName().equalsIgnoreCase("br")) {
+                        working += "\n";
                     }
-
-                    replacement = StandardMappers.stripBaseFormatting(replacement);
-
-                    int length = replacement.length();
-
-                    if (columnLength.size() - 1 < i) {
-                        columnLength.add(length);
-                    } else if (columnLength.get(i) < length) {
-                        columnLength.set(i, length);
-                    }
+                    working += getText(childElement);
                 }
             }
 
-            StringBuilder builder = new StringBuilder();
-
-            // APPLY COLUMN SIZES
-            for (Element element : wrapped.getElementsByTag("tr")) {
-                Elements cells = element.getElementsByTag("th");
-                cells.addAll(element.getElementsByTag("td"));
-
-                // cells
-                for (int i = 0; i < cells.size(); i++) {
-                    Element cell = cells.get(i);
-
-                    String replacement = converterStorage.getReplacement(cell);
-                    if (!cell.getElementsByTag("a").isEmpty()) {
-                        if (cell.getElementsByTag("a").stream().anyMatch(element1 -> element1.hasAttr("href"))) {
-                            replacement = cell.text();
-                        }
-                    }
-
-                    replacement = StandardMappers.stripBaseFormatting(replacement);
-
-                    char paddingChar = cell.tagName().equals("th") ? '-' : ' ';
-                    replacement = StandardMappers.padToLength(replacement, paddingChar, columnLength.get(i) + 2);
-                    replacement = replacement.replace("\n", "");
-
-                    builder.append(replacement);
-                    builder.append("|");
-                }
-                if (!cells.isEmpty() && cells.get(0).tagName().equalsIgnoreCase("th")) {
-                    builder.append("\n");
-                    builder.append(StandardMappers.repeat("=", columnLength.stream().mapToInt(Integer::intValue).sum() + 4));
-                    builder.append("\n");
-                } else {
-                    builder.append("\n");
-                    builder.append(StandardMappers.repeat("-", columnLength.stream().mapToInt(Integer::intValue).sum() + 4));
-                    builder.append("\n");
-                }
-            }
-
-            return CODE.convert(builder.toString());
+            return working;
         }
     },
     TABLE_ROW("tr", html -> html),
@@ -256,54 +237,6 @@ public enum StandardMappers implements Mapper {
 
     StandardMappers(Function<String, String> converter, String... tags) {
         this(s -> Arrays.stream(tags).map(String::toLowerCase).anyMatch(s1 -> s1.equalsIgnoreCase(s)), converter);
-    }
-
-    /**
-     * Repeats a given String for the given amount
-     *
-     * @param string The String to repeat
-     * @param amount The amount to repeat it for
-     *
-     * @return The repeated String consisting of '{@code amount times string}'
-     */
-    private static String repeat(String string, int amount) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < amount; i++) {
-            builder.append(string);
-        }
-
-        return builder.toString();
-    }
-
-    /**
-     * Pads a String to a given length
-     *
-     * @param string The string to pad
-     * @param paddingChar The padding character
-     * @param length The desired length of the string
-     *
-     * @return The padded String, or the original string if it was {@code >= length}
-     */
-    private static String padToLength(String string, char paddingChar, int length) {
-        String result = string.trim();
-
-        result = Parser.unescapeEntities(result, false);
-
-        if (result.length() >= length) {
-            return result;
-        }
-        int difference = length - result.length();
-
-        result = repeat(Character.toString(paddingChar), difference / 2) + result + repeat(Character.toString(paddingChar), difference / 2);
-        if (difference % 2 != 0) {
-            result += " ";
-        }
-
-        return result;
-    }
-
-    private static String stripBaseFormatting(String input) {
-        return input.replaceAll("_(.+?)_", "$1").replaceAll("\\*\\*(.+?)\\*\\*", "$1");
     }
 
     @Override

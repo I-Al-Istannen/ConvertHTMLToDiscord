@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Stack;
-import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -52,9 +51,9 @@ public class HtmlConverter {
         List<WrappedElement> flatten = flatten(html.child(1));
         Collections.reverse(flatten);
 
-        System.out.println(flatten.stream()
-                  .map(wrappedElement -> wrappedElement.getWrapped().tagName() + " '" + wrappedElement.getReplacedContent() + "'")
-                  .collect(Collectors.counting()));
+        // convert it from the bottom up...
+        flatten.forEach(WrappedElement::getReplacedContent);
+
         WrappedElement last = flatten.get(flatten.size() - 1);
 
         String result = Parser.unescapeEntities(converterStorage.getReplacement(last.getWrapped()), true);
@@ -88,8 +87,6 @@ public class HtmlConverter {
         }
 
         outputQueue.poll();
-
-        System.out.println(outputQueue.stream().map(WrappedElement::getWrapped).map(Element::tagName).collect(Collectors.toList()));
 
         return new ArrayList<>(outputQueue);
     }
@@ -362,6 +359,6 @@ public class HtmlConverter {
 
         HtmlConverter converter = new HtmlConverter(code, collection);
         String result = converter.parse("https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/potion/PotionEffectType.html");
-        System.out.println(result);
+        System.out.println("Result is: " + result);
     }
 }
