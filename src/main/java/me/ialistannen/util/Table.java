@@ -2,6 +2,7 @@ package me.ialistannen.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -50,7 +51,7 @@ public class Table {
 
         return builder.toString();
     }
-    
+
     /**
      * Brings all lines on the same amount of columns
      */
@@ -112,7 +113,8 @@ public class Table {
         for (Line line : lines) {
             List<Column> lineColumns = line.getColumns();
             for (int i = 0; i < lineColumns.size(); i++) {
-                int width = lineColumns.get(i).getColumn().length();
+                // + 2 because it seemed to work. Too lazy to figure out why it is needed.
+                int width = lineColumns.get(i).getColumn().length() + 2;
 
                 if (columnWidths.size() - 1 < i) {
                     columnWidths.add(-1);
@@ -242,7 +244,7 @@ public class Table {
         private SlicedColumn(Column column, int length) {
             this.length = length;
 
-            lines = trimToLength(column.getColumn(), length);
+            lines = new ArrayList<>(trimToLength(column.getColumn(), length));
         }
 
         /**
@@ -258,6 +260,10 @@ public class Table {
 
             if (maxLength < 1) {
                 throw new IllegalArgumentException("MaxLength must be > 0");
+            }
+
+            if (!text.contains(" ")) {
+                return Collections.singletonList(trimToLengthWithEllipsis(text, maxLength));
             }
 
             List<String> newLore = new LinkedList<>();
