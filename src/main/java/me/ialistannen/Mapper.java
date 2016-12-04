@@ -8,6 +8,8 @@ public interface Mapper {
     /**
      * Converts the input
      *
+     * @param input The input to convert
+     *
      * @return The converted input
      */
     String convert(String input);

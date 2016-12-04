@@ -66,14 +66,14 @@ public enum StandardMappers implements Mapper {
         }
     },
     DIV("div", html -> "\n" + html),
-    HEADING("h", (html) -> StandardMappers.ITALIC.convert(BOLD.convert(html)) + "\n") {
+    HORIZONTAL_LINE("hr", html -> repeat("-", 20) + html),
+    ITALIC("i", html -> "_" + html + "_"),
+    HEADING("h", (html) -> ITALIC.convert(BOLD.convert(html)) + "\n") {
         @Override
         public boolean matches(String htmlTag) {
             return htmlTag.matches("h[0-4]");
         }
     },
-    HORIZONTAL_LINE("hr", html -> repeat("-", 20) + html),
-    ITALIC("i", html -> "_" + html + "_"),
     LINE_BREAK("br", html -> "\n" + html),
     LINK("a", html -> html) {
         @Override
