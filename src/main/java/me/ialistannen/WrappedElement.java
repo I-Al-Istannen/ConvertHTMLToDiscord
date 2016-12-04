@@ -58,7 +58,7 @@ public class WrappedElement {
                     }
                 }
 
-                html = matcher.replaceFirst(replacement);
+                html = matcher.replaceFirst(replacement.replace("\\)", "\\\\)"));
             }
         }
 

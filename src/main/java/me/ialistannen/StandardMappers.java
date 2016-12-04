@@ -40,14 +40,21 @@ public enum StandardMappers implements Mapper {
             return context.getWrapped().attr("checked").equalsIgnoreCase("checked") ? "[X]" : "[ ]";
         }
     },
-    CODE("code", (html) -> {
-        if (html.contains("\n")) {
-            String prefix = "\n```" + (html.startsWith("\n") ? "" : "\n");
-            String suffix = (html.endsWith("\n") ? "" : "\n") + "```" + "\n";
-            return prefix + html + suffix;
+    CODE("code", (html) -> html) {
+        @Override
+        public String convert(String input, WrappedElement context) {
+            // skip code for links
+            if (context.getWrapped().getElementsByTag("a").stream().anyMatch(element -> element.hasAttr("href"))) {
+                return input;
+            }
+            if (input.contains("\n")) {
+                String prefix = "\n```" + (input.startsWith("\n") ? "" : "\n");
+                String suffix = (input.endsWith("\n") ? "" : "\n") + "```" + "\n";
+                return prefix + input + suffix;
+            }
+            return "`" + input + "`";
         }
-        return "`" + html + "`";
-    }),
+    },
     DESCRIPTION_LIST("dl", html -> html),
     DESCRIPTION_TAG("dt", html -> html) {
         @Override
@@ -90,14 +97,7 @@ public enum StandardMappers implements Mapper {
             String target = wrapped.absUrl("href");
             String name = context.getConverterStorage().getReplacement(wrapped);
 
-            // just links in code
-            for (Element element : wrapped.parents()) {
-                if (element.tagName().equalsIgnoreCase("code")) {
-                    return name;
-                }
-            }
-
-            return "[" + name + "](" + target + ")";
+            return "[" + name + "](" + target.replace(")", "\\)") + ")";
         }
     },
     LIST("ul", html -> html) {
