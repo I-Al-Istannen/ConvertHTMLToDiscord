@@ -29,6 +29,8 @@ public enum StandardMappers implements Mapper {
         }
     },
     BOLD(html -> "**" + html + "**", "b", "strong"),
+    ITALIC("i", html -> "_" + html + "_"),
+    CITE("cite", ITALIC::convert),
     CHECKBOX("", html -> "") {
         @Override
         public boolean matches(WrappedElement element) {
@@ -75,7 +77,6 @@ public enum StandardMappers implements Mapper {
     },
     DIV("div", html -> "\n" + html),
     HORIZONTAL_LINE("hr", html -> repeat("-", 20) + html),
-    ITALIC("i", html -> "_" + html + "_"),
     HEADING("h", (html) -> ITALIC.convert(BOLD.convert(html)) + "\n") {
         @Override
         public boolean matches(String htmlTag) {
@@ -97,6 +98,12 @@ public enum StandardMappers implements Mapper {
             String target = wrapped.absUrl("href");
             String name = context.getConverterStorage().getReplacement(wrapped);
 
+            if(wrapped.parent().tagName().equals("code")) {
+                if(wrapped.children().size() > 1) {
+                    return name;
+                }
+            }
+            
             return "[" + name + "](" + target.replace(")", "\\)") + ")";
         }
     },
@@ -264,9 +271,5 @@ public enum StandardMappers implements Mapper {
     @Override
     public String convert(String input) {
         return converter.apply(input);
-    }
-
-    public static void main(String[] args) {
-        Arrays.stream(values()).map(Enum::name).sorted().forEach(System.out::println);
     }
 }
