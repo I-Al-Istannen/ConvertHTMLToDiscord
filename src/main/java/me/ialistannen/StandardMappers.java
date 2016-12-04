@@ -125,7 +125,23 @@ public enum StandardMappers implements Mapper {
             return htmlTag.matches("h[0-4]");
         }
     },
-    SPAN("span", html -> html),
+    SPAN("span", html -> html) {
+        @Override
+        public boolean matches(WrappedElement element) {
+            Element wrapped = element.getWrapped();
+            return wrapped.tagName().equals("span")
+                      && !(wrapped.hasAttr("class") && wrapped.attr("class").equalsIgnoreCase("strong"));
+        }
+    },
+    SPAN_STRONG("span", BOLD::convert) {
+        @Override
+        public boolean matches(WrappedElement element) {
+            Element wrapped = element.getWrapped();
+            return wrapped.tagName().equals("span")
+                      && wrapped.hasAttr("class")
+                      && wrapped.attr("class").equalsIgnoreCase("strong");
+        }
+    },
     DESCRIPTION_LIST("dl", html -> html),
     DESCRIPTION_TAG("dt", html -> html) {
         @Override
