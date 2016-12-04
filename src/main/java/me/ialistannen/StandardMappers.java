@@ -53,7 +53,8 @@ public enum StandardMappers implements Mapper {
         @Override
         public String convert(String input, WrappedElement context) {
             if (!context.getWrapped().getElementsByTag("b").isEmpty()
-                      || !context.getWrapped().getElementsByTag("strong").isEmpty()) {
+                      || !context.getWrapped().getElementsByTag("strong").isEmpty()
+                      || context.getWrapped().getElementsByAttributeValue("class", "strong").stream().noneMatch(element -> element.tagName().equals("span"))) {
                 return input;
             }
             return BOLD.convert(input);
