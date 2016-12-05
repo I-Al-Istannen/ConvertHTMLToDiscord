@@ -1,6 +1,4 @@
-package me.ialistannen;
-
-import static me.ialistannen.util.StringUtils.repeat;
+package me.ialistannen.htmltodiscord;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,9 +11,8 @@ import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
-import me.ialistannen.util.TableCreator;
-import me.ialistannen.util.TableCreator.Column;
-import me.ialistannen.util.TableCreator.RowSeparator;
+import me.ialistannen.htmltodiscord.util.StringUtils;
+import me.ialistannen.htmltodiscord.util.TableCreator;
 
 /**
  * The standard mappers
@@ -69,14 +66,14 @@ public enum StandardMappers implements Mapper {
             return BOLD.convert(input);
         }
     },
-    DESCRIPTION_DESCRIPTION("dd", html -> repeat(" ", 3) + html) {
+    DESCRIPTION_DESCRIPTION("dd", html -> StringUtils.repeat(" ", 3) + html) {
         @Override
         public String convert(String input, WrappedElement context) {
-            return repeat(" ", 3) + input;
+            return StringUtils.repeat(" ", 3) + input;
         }
     },
     DIV("div", html -> "\n" + html),
-    HORIZONTAL_LINE("hr", html -> repeat("-", 20) + html),
+    HORIZONTAL_LINE("hr", html -> StringUtils.repeat("-", 20) + html),
     HEADING("h", (html) -> ITALIC.convert(BOLD.convert(html)) + "\n") {
         @Override
         public boolean matches(String htmlTag) {
@@ -181,14 +178,14 @@ public enum StandardMappers implements Mapper {
                 Elements cells = element.getElementsByTag("th");
                 cells.addAll(element.getElementsByTag("td"));
 
-                RowSeparator rowSeparator = length -> {
+                TableCreator.RowSeparator rowSeparator = length -> {
                     if (element.getElementsByTag("th").isEmpty()) {
-                        return repeat("-", length);
+                        return StringUtils.repeat("-", length);
                     }
-                    return repeat("=", length);
+                    return StringUtils.repeat("=", length);
                 };
 
-                Collection<Column> columns = new ArrayList<>();
+                Collection<TableCreator.Column> columns = new ArrayList<>();
 
                 // cells
                 //noinspection Convert2streamapi

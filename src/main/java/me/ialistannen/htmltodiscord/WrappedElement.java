@@ -1,4 +1,4 @@
-package me.ialistannen;
+package me.ialistannen.htmltodiscord;
 
 import java.util.Optional;
 import java.util.regex.Matcher;

@@ -1,4 +1,4 @@
-package me.ialistannen.util;
+package me.ialistannen.htmltodiscord.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,19 +8,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
 
-import me.ialistannen.util.TableCreator.Column;
-import me.ialistannen.util.TableCreator.ColumnSeparator;
-import me.ialistannen.util.TableCreator.Line;
-import me.ialistannen.util.TableCreator.RowSeparator;
-
 /**
  * A table
  */
 public class Table {
 
-    private List<SlicedLine> slicedLines;
-    private ColumnSeparator  columnSeparator;
-    private int              maxWidth;
+    private List<SlicedLine>             slicedLines;
+    private TableCreator.ColumnSeparator columnSeparator;
+    private int                          maxWidth;
 
     /**
      * @param creator The {@link TableCreator} to use
@@ -29,7 +24,7 @@ public class Table {
         maxWidth = creator.getMaxWidth();
         columnSeparator = creator.getColumnSeparator();
 
-        List<Line> lines = new ArrayList<>(creator.getLines());
+        List<TableCreator.Line> lines = new ArrayList<>(creator.getLines());
 
         fillLinesWithEmptyColumns(lines);
 
@@ -55,7 +50,7 @@ public class Table {
     /**
      * Brings all lines on the same amount of columns
      */
-    private void fillLinesWithEmptyColumns(List<Line> lines) {
+    private void fillLinesWithEmptyColumns(List<TableCreator.Line> lines) {
         int maxColumns = lines.stream().mapToInt(line -> line.getColumns().size()).max().orElse(-1);
         if (maxColumns == -1) {
             throw new IllegalArgumentException("No columns found!");
@@ -81,16 +76,16 @@ public class Table {
      *
      * @return The sliced lines
      */
-    private List<SlicedLine> sliceColumns(List<Line> lines) {
+    private List<SlicedLine> sliceColumns(List<TableCreator.Line> lines) {
         List<Integer> columnWidths = calculateColumnWidths(lines);
         List<SlicedLine> slicedLines = new ArrayList<>(lines.size());
 
-        for (Line line : lines) {
+        for (TableCreator.Line line : lines) {
             List<SlicedColumn> slicedColumns = new ArrayList<>();
 
-            List<Column> columns = line.getColumns();
+            List<TableCreator.Column> columns = line.getColumns();
             for (int i = 0; i < columns.size(); i++) {
-                Column column = columns.get(i);
+                TableCreator.Column column = columns.get(i);
                 SlicedColumn sliced = new SlicedColumn(column, columnWidths.get(i));
                 slicedColumns.add(sliced);
             }
@@ -104,14 +99,14 @@ public class Table {
     /**
      * @return The calculated column sizes
      */
-    private List<Integer> calculateColumnWidths(List<Line> lines) {
+    private List<Integer> calculateColumnWidths(List<TableCreator.Line> lines) {
         List<Integer> columnWidths = new ArrayList<>();
         int averageWidth = maxWidth;
         averageWidth -= (lines.get(0).getColumns().size() + 1) * columnSeparator.getSeparator().length();
         averageWidth /= lines.get(0).getColumns().size();
 
-        for (Line line : lines) {
-            List<Column> lineColumns = line.getColumns();
+        for (TableCreator.Line line : lines) {
+            List<TableCreator.Column> lineColumns = line.getColumns();
             for (int i = 0; i < lineColumns.size(); i++) {
                 // + 2 because it seemed to work. Too lazy to figure out why it is needed.
                 int width = lineColumns.get(i).getColumn().length() + 2;
@@ -162,13 +157,13 @@ public class Table {
         return columnWidths;
     }
 
-    private List<Integer> getMaxWidth(List<Line> lines) {
+    private List<Integer> getMaxWidth(List<TableCreator.Line> lines) {
         List<Integer> width = new ArrayList<>();
 
-        for (Line line : lines) {
-            List<Column> columns = line.getColumns();
+        for (TableCreator.Line line : lines) {
+            List<TableCreator.Column> columns = line.getColumns();
             for (int i = 0; i < columns.size(); i++) {
-                Column column = columns.get(i);
+                TableCreator.Column column = columns.get(i);
 
                 int columnWidth = column.getColumn().length();
 
@@ -187,24 +182,24 @@ public class Table {
      * A sliced line
      */
     private static class SlicedLine {
-        private List<SlicedColumn> columns;
-        private RowSeparator       rowSeparator;
+        private List<SlicedColumn>        columns;
+        private TableCreator.RowSeparator rowSeparator;
 
         /**
          * @param columns The columns
          * @param rowSeparator The row separator
          */
-        private SlicedLine(List<SlicedColumn> columns, RowSeparator rowSeparator) {
+        private SlicedLine(List<SlicedColumn> columns, TableCreator.RowSeparator rowSeparator) {
             this.columns = columns;
             this.rowSeparator = rowSeparator;
         }
 
         /**
-         * @param columnSeparator The {@link ColumnSeparator}
+         * @param columnSeparator The {@link TableCreator.ColumnSeparator}
          *
          * @return The row with the separator
          */
-        private String print(ColumnSeparator columnSeparator) {
+        private String print(TableCreator.ColumnSeparator columnSeparator) {
             StringBuilder builder = new StringBuilder();
             int maxLines = columns.stream().mapToInt(column -> column.getLines().size()).max().orElse(0);
 
@@ -212,10 +207,10 @@ public class Table {
                 builder.append(columnSeparator.getSeparator());
                 for (SlicedColumn column : columns) {
                     if (column.getLines().size() - 1 < i) {
-                        builder.append(StringUtils.repeat(" ", column.getLength()));
+                        builder.append(me.ialistannen.htmltodiscord.util.StringUtils.repeat(" ", column.getLength()));
                     } else {
                         String line = column.getLines().get(i);
-                        builder.append(StringUtils.padToLength(line, ' ', column.getLength()));
+                        builder.append(me.ialistannen.htmltodiscord.util.StringUtils.padToLength(line, ' ', column.getLength()));
                     }
                     builder.append(columnSeparator.getSeparator());
                 }
@@ -241,7 +236,7 @@ public class Table {
          * @param column The column to use
          * @param length The max length of a line
          */
-        private SlicedColumn(Column column, int length) {
+        private SlicedColumn(TableCreator.Column column, int length) {
             this.length = length;
 
             lines = new ArrayList<>(trimToLength(column.getColumn(), length));

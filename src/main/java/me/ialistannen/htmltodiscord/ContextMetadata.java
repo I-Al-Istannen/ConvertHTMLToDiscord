@@ -1,4 +1,4 @@
-package me.ialistannen;
+package me.ialistannen.htmltodiscord;
 
 import java.util.HashMap;
 import java.util.Map;

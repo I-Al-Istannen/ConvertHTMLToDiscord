@@ -1,4 +1,4 @@
-package me.ialistannen.util;
+package me.ialistannen.htmltodiscord.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,8 +68,8 @@ public class TableCreator {
      *
      * @return The resulting table
      */
-    public Table build() {
-        return new Table(this);
+    public me.ialistannen.htmltodiscord.util.Table build() {
+        return new me.ialistannen.htmltodiscord.util.Table(this);
     }
 
     /**

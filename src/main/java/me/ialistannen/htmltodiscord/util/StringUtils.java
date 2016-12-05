@@ -1,4 +1,4 @@
-package me.ialistannen.util;
+package me.ialistannen.htmltodiscord.util;
 
 import org.jsoup.parser.Parser;
 
