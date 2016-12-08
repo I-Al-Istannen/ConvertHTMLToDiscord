@@ -72,7 +72,7 @@ public class WrappedElement {
     private String replace(String content) {
         Optional<Mapper> mapperOptional = mappers.getMapper(this);
         Mapper mapper = mapperOptional
-                  .orElseThrow(() -> new IllegalArgumentException("No mapper for tag '" + wrapped.tagName() + "' found."));
+                  .orElseThrow(() -> new IllegalArgumentException("No mapper for tag '" + wrapped.tagName() + "' found.\n" + wrapped.outerHtml()));
 
         return mapper.convert(content, this);
     }

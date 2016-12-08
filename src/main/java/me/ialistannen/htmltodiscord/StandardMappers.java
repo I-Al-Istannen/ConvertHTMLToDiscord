@@ -26,7 +26,7 @@ public enum StandardMappers implements Mapper {
         }
     },
     BOLD(html -> "**" + html + "**", "b", "strong"),
-    ITALIC("i", html -> "_" + html + "_"),
+    ITALIC(html -> "_" + html + "_", "i", "em", "tt"),
     CITE("cite", ITALIC::convert),
     CHECKBOX("", html -> "") {
         @Override
@@ -39,7 +39,7 @@ public enum StandardMappers implements Mapper {
             return context.getWrapped().attr("checked").equalsIgnoreCase("checked") ? "[X]" : "[ ]";
         }
     },
-    CODE("code", (html) -> html) {
+    CODE((html) -> html, "code", "blockquote") {
         @Override
         public String convert(String input, WrappedElement context) {
             // skip code for links
@@ -80,6 +80,7 @@ public enum StandardMappers implements Mapper {
             return htmlTag.matches("h[0-4]");
         }
     },
+    IMAGE("img", html -> html),
     LINE_BREAK("br", html -> "\n" + html),
     LINK("a", html -> html) {
         @Override
@@ -95,12 +96,12 @@ public enum StandardMappers implements Mapper {
             String target = wrapped.absUrl("href");
             String name = context.getConverterStorage().getReplacement(wrapped);
 
-            if(wrapped.parent().tagName().equals("code")) {
-                if(wrapped.children().size() > 1) {
+            if (wrapped.parent().tagName().equals("code")) {
+                if (wrapped.children().size() > 1) {
                     return name;
                 }
             }
-            
+
             return "[" + name + "](" + target.replace(")", "\\)") + ")";
         }
     },
@@ -124,7 +125,7 @@ public enum StandardMappers implements Mapper {
                 if (ordered) {
                     builder.append(Integer.toString(i + 1)).append(". ");
                 } else {
-                    builder.append("- ");
+                    builder.append(BOLD.convert("-")).append(" ");
                 }
                 builder.append(replaced);
             }
@@ -242,7 +243,8 @@ public enum StandardMappers implements Mapper {
     },
     TABLE_CELL("td", html -> html),
     TABLE_HEADING("th", HEADING::convert),
-    TABLE_ROW("tr", html -> html);
+    TABLE_ROW("tr", html -> html),
+    UNDERLINE("u", html -> "___" + html + "___");
 
     private Predicate<String>        htmlIdentifier;
     private Function<String, String> converter;
