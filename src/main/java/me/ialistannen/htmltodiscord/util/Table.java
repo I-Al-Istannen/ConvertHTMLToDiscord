@@ -219,7 +219,11 @@ public class Table {
 
             int length = columns.stream().mapToInt(SlicedColumn::getLength).sum();
             length += (columns.size() + 1) * columnSeparator.getSeparator().length();
-            builder.append(rowSeparator.getSeparator(length));
+            if (rowSeparator.getSeparator(length).isEmpty()) {
+                builder.deleteCharAt(builder.length() - 1);
+            } else {
+                builder.append(rowSeparator.getSeparator(length));
+            }
 
             return builder.toString();
         }
