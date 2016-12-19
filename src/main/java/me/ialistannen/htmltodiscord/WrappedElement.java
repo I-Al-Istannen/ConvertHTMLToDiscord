@@ -43,11 +43,18 @@ public class WrappedElement {
 
     public String getReplacedContent() {
         String html = wrapped.html();
+        // replace artificial new lines before tags
+        html = cleanupHtmlTagLinefeeds(html);
 
         for (int i = 0; i < wrapped.children().size(); i++) {
             Element child = wrapped.child(i);
 
-            Matcher matcher = Pattern.compile(Pattern.quote(child.outerHtml())).matcher(html);
+            Matcher matcher = Pattern.compile(
+                      Pattern.quote(
+                                cleanupHtmlTagLinefeeds(child.outerHtml())
+                      )
+            ).matcher(html);
+
             if (matcher.find()) {
                 String replacement = converterStorage.getReplacement(child);
 
@@ -67,6 +74,10 @@ public class WrappedElement {
         converterStorage.setReplacement(wrapped, html);
 
         return html;
+    }
+
+    private String cleanupHtmlTagLinefeeds(String html) {
+        return html.replaceAll("(\n|\r\n|\r)\\s*<", "<");
     }
 
     private String replace(String content) {

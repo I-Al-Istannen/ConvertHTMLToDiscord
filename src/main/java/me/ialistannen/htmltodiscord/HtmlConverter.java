@@ -97,7 +97,9 @@ public class HtmlConverter {
      * @param args The VM args
      */
     public static void main(String[] args) {
-        String code = "";
+        String code = "<div class=\"block\">Class <code>Object</code> is the root of the class hierarchy.\n"
+                  + " Every class has <code>Object</code> as a superclass. All objects,\n"
+                  + " including arrays, implement the methods of this class.</div>";
         //        String code = "<code><b><i>HEY</i>BOLD</b></code> <input type=\"checkbox\" name=\"Kenntnisse_in\" value=\"HTML\" checked=\"checked\">";
         MapperCollection collection = new MapperCollection();
         for (StandardMappers standardMappers : StandardMappers.values()) {

@@ -54,22 +54,22 @@ public enum StandardMappers implements Mapper {
             return "`" + input + "`";
         }
     },
-    DESCRIPTION_LIST("dl", html -> html),
+    DESCRIPTION_LIST("dl", html -> "\n" + html),
     DESCRIPTION_TAG("dt", html -> html) {
         @Override
         public String convert(String input, WrappedElement context) {
             if (!context.getWrapped().getElementsByTag("b").isEmpty()
                       || !context.getWrapped().getElementsByTag("strong").isEmpty()
                       || context.getWrapped().getElementsByAttributeValue("class", "strong").stream().anyMatch(element -> element.tagName().equals("span"))) {
-                return input;
+                return "\n" + input;
             }
-            return BOLD.convert(input);
+            return "\n" + BOLD.convert(input);
         }
     },
     DESCRIPTION_DESCRIPTION("dd", html -> StringUtils.repeat(" ", 3) + html) {
         @Override
         public String convert(String input, WrappedElement context) {
-            return StringUtils.repeat(" ", 3) + input;
+            return "\n" + StringUtils.repeat(" ", 3) + input;
         }
     },
     DIV("div", html -> "\n" + html),
@@ -131,7 +131,7 @@ public enum StandardMappers implements Mapper {
             }
 
             builder.append("\n\n");
-            return builder.toString();
+            return "\n" + builder.toString();
         }
     },
     LIST_ITEM("li", html -> html),
