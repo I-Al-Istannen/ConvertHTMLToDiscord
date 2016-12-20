@@ -73,6 +73,7 @@ public enum StandardMappers implements Mapper {
         }
     },
     DIV("div", html -> "\n" + html),
+    FONT("font", html -> html),
     HORIZONTAL_LINE("hr", html -> StringUtils.repeat("-", 20) + html),
     HEADING("h", (html) -> "\n\n" + ITALIC.convert(BOLD.convert(html)) + "\n") {
         @Override
