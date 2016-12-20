@@ -136,7 +136,15 @@ public enum StandardMappers implements Mapper {
         }
     },
     LIST_ITEM("li", html -> html),
-    PARAGRAPH("p", html -> "\n" + html),
+    PARAGRAPH("p", html -> "\n" + html) {
+        @Override
+        public String convert(String input, WrappedElement context) {
+            if(context.getWrapped().parent().tagName().equalsIgnoreCase("li")) {
+                return input;
+            }
+            return "\n" + input;
+        }
+    },
     PRE("pre", html -> html) {
         //        @Override
         //        public String convert(String input, WrappedElement context) {
@@ -199,7 +207,7 @@ public enum StandardMappers implements Mapper {
                 tableCreator.addLine(rowSeparator, columns);
             }
 
-            return CODE.convert(tableCreator.build().print());
+            return "\n```\n" + tableCreator.build().print() + "\n```\n";
         }
 
         String getText(Element parentElement) {
