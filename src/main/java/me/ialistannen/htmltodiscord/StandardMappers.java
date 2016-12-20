@@ -74,7 +74,7 @@ public enum StandardMappers implements Mapper {
     },
     DIV("div", html -> "\n" + html),
     HORIZONTAL_LINE("hr", html -> StringUtils.repeat("-", 20) + html),
-    HEADING("h", (html) -> "\n" + ITALIC.convert(BOLD.convert(html)) + "\n") {
+    HEADING("h", (html) -> "\n\n" + ITALIC.convert(BOLD.convert(html)) + "\n") {
         @Override
         public boolean matches(String htmlTag) {
             return htmlTag.matches("h[0-4]");
