@@ -254,7 +254,8 @@ public enum StandardMappers implements Mapper {
     TABLE_CELL("td", html -> html),
     TABLE_HEADING("th", HEADING::convert),
     TABLE_ROW("tr", html -> html),
-    UNDERLINE("u", html -> "___" + html + "___");
+    UNDERLINE("u", html -> "___" + html + "___"),
+    VAR("var", ITALIC::convert);
 
     private Predicate<String>        htmlIdentifier;
     private Function<String, String> converter;
