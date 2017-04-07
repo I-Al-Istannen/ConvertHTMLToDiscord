@@ -174,8 +174,8 @@ public enum StandardMappers implements Mapper {
                       && wrapped.attr("class").equalsIgnoreCase("strong");
         }
     },
-    SUP("sup", html -> "^{" + html + "}"),
-    SUB("sub", html -> "_{" + html + "}"),
+    SUP("sup", html -> "↑{" + html + "}"),
+    SUB("sub", html -> "↓{" + html + "}"),
     TABLE("table", html -> html) {
         @Override
         public String convert(String input, WrappedElement context) {
