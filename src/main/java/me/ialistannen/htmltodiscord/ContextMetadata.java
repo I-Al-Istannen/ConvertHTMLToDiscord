@@ -2,7 +2,6 @@ package me.ialistannen.htmltodiscord;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.jsoup.nodes.Element;
 
 /**

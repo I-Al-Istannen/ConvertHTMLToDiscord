@@ -5,14 +5,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
+import me.ialistannen.htmltodiscord.util.StringUtils;
+import me.ialistannen.htmltodiscord.util.TableCreator;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
-
-import me.ialistannen.htmltodiscord.util.StringUtils;
-import me.ialistannen.htmltodiscord.util.TableCreator;
 
 /**
  * The standard mappers
@@ -177,6 +175,7 @@ public enum StandardMappers implements Mapper {
         }
     },
     SUP("sup", html -> "^{" + html + "}"),
+    SUB("sub", html -> "_{" + html + "}"),
     TABLE("table", html -> html) {
         @Override
         public String convert(String input, WrappedElement context) {
