@@ -23,7 +23,7 @@ public enum StandardMappers implements Mapper {
             return element.getWrapped().tagName().equalsIgnoreCase("a") && element.getWrapped().hasAttr("name");
         }
     },
-    BOLD(html -> "**" + html + "**", "b", "strong"),
+    BOLD(html -> "**" + html + "**", "b", "strong", "bold"),
     ITALIC(html -> "_" + html + "_", "i", "em", "tt"),
     CITE("cite", ITALIC::convert),
     CHECKBOX("", html -> "") {
