@@ -9,81 +9,84 @@ import org.jsoup.nodes.Element;
  * A wrapped element
  */
 public class WrappedElement {
-    private ConverterStorage converterStorage;
-    private MapperCollection mappers;
-    private ContextMetadata  metadata;
-    private Element          wrapped;
 
-    public WrappedElement(Element element, ConverterStorage converterStorage, MapperCollection mappers, ContextMetadata metadata) {
-        this.wrapped = element;
-        this.converterStorage = converterStorage;
-        this.mappers = mappers;
-        this.metadata = metadata;
-    }
+  private ConverterStorage converterStorage;
+  private MapperCollection mappers;
+  private ContextMetadata metadata;
+  private Element wrapped;
 
-    public Element getWrapped() {
-        return wrapped;
-    }
+  public WrappedElement(Element element, ConverterStorage converterStorage,
+      MapperCollection mappers, ContextMetadata metadata) {
+    this.wrapped = element;
+    this.converterStorage = converterStorage;
+    this.mappers = mappers;
+    this.metadata = metadata;
+  }
 
-    public ConverterStorage getConverterStorage() {
-        return converterStorage;
-    }
+  public Element getWrapped() {
+    return wrapped;
+  }
 
-    public MapperCollection getMappers() {
-        return mappers;
-    }
+  public ConverterStorage getConverterStorage() {
+    return converterStorage;
+  }
 
-    /**
-     * @return The metadata for this element
-     */
-    public ContextMetadata getMetadata() {
-        return metadata;
-    }
+  public MapperCollection getMappers() {
+    return mappers;
+  }
 
-    public String getReplacedContent() {
-        String html = wrapped.html();
-        // replace artificial new lines before tags
-        html = cleanupHtmlTagLinefeeds(html);
+  /**
+   * @return The metadata for this element
+   */
+  public ContextMetadata getMetadata() {
+    return metadata;
+  }
 
-        for (int i = 0; i < wrapped.children().size(); i++) {
-            Element child = wrapped.child(i);
+  public String getReplacedContent() {
+    String html = wrapped.html();
+    // replace artificial new lines before tags
+    html = cleanupHtmlTagLinefeeds(html);
 
-            Matcher matcher = Pattern.compile(
-                      Pattern.quote(
-                                cleanupHtmlTagLinefeeds(child.outerHtml())
-                      )
-            ).matcher(html);
+    for (int i = 0; i < wrapped.children().size(); i++) {
+      Element child = wrapped.child(i);
 
-            if (matcher.find()) {
-                String replacement = converterStorage.getReplacement(child);
+      Matcher matcher = Pattern.compile(
+          Pattern.quote(
+              cleanupHtmlTagLinefeeds(child.outerHtml())
+          )
+      ).matcher(html);
 
-                if (matcher.end() < html.length() - 1) {
-                    int character = html.codePointAt(matcher.end());
-                    if (!Character.isWhitespace(character)) {
-                        replacement += " ";
-                    }
-                }
+      if (matcher.find()) {
+        String replacement = converterStorage.getReplacement(child);
 
-                html = matcher.replaceFirst(replacement.replace("\\)", "\\\\)"));
-            }
+        if (matcher.end() < html.length() - 1) {
+          int character = html.codePointAt(matcher.end());
+          if (!Character.isWhitespace(character)) {
+            replacement += " ";
+          }
         }
 
-        converterStorage.setReplacement(wrapped, html);
-        html = replace(html);
-        converterStorage.setReplacement(wrapped, html);
-
-        return html;
+        html = matcher.replaceFirst(replacement.replace("\\)", "\\\\)"));
+      }
     }
 
-    private String cleanupHtmlTagLinefeeds(String html) {
-        return html.replaceAll("(\n|\r\n|\r)\\s*<", "<");
-    }
+    converterStorage.setReplacement(wrapped, html);
+    html = replace(html);
+    converterStorage.setReplacement(wrapped, html);
 
-    private String replace(String content) {
-        Optional<Mapper> mapperOptional = mappers.getMapper(this);
-        Mapper mapper = mapperOptional
-                  .orElseThrow(() -> new IllegalArgumentException("No mapper for tag '" + wrapped.tagName() + "' found.\n" + wrapped.outerHtml()));
+    return html;
+  }
 
-        return mapper.convert(content, this);
-    }
+  private String cleanupHtmlTagLinefeeds(String html) {
+    return html.replaceAll("(\n|\r\n|\r)\\s*<", "<");
+  }
+
+  private String replace(String content) {
+    Optional<Mapper> mapperOptional = mappers.getMapper(this);
+    Mapper mapper = mapperOptional
+        .orElseThrow(() -> new IllegalArgumentException(
+            "No mapper for tag '" + wrapped.tagName() + "' found.\n" + wrapped.outerHtml()));
+
+    return mapper.convert(content, this);
+  }
 }
