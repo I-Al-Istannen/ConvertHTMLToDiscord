@@ -20,6 +20,7 @@ public class HtmlConverter {
   private MapperCollection mappers;
   private ConverterStorage converterStorage;
   private ContextMetadata metadata;
+  private boolean silentlyIgnoreUnknownTags;
 
   /**
    * Creates a new HTML to Markdown converter
@@ -54,12 +55,7 @@ public class HtmlConverter {
 
     WrappedElement last = flatten.get(flatten.size() - 1);
 
-    String result = Parser
-        .unescapeEntities(converterStorage.getReplacement(last.getWrapped()), true);
-    //        StringSelection selection = new StringSelection(result);
-    //        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-    //        clipboard.setContents(selection, selection);
-    return result;
+    return Parser.unescapeEntities(converterStorage.getReplacement(last.getWrapped()), true);
   }
 
   /**
@@ -77,7 +73,11 @@ public class HtmlConverter {
     while (!inputQueue.isEmpty()) {
       Element element = inputQueue.pop();
 
-      outputQueue.add(new WrappedElement(element, converterStorage, mappers, metadata));
+      outputQueue.add(
+          new WrappedElement(
+              element, converterStorage, mappers, metadata, silentlyIgnoreUnknownTags
+          )
+      );
 
       for (int i = 0; i < element.children().size(); i++) {
         inputQueue.push(element.child(i));
@@ -90,24 +90,13 @@ public class HtmlConverter {
   }
 
   /**
-   * Some test code
+   * Sets whether unknown tags will be silently ignored.
    *
-   * @param args The VM args
+   * @param ignore Whether to silently ignore unknown tags
+   * @return This {@link HtmlConverter}
    */
-  public static void main(String[] args) {
-    String code =
-        "<div class=\"block\">Class <code>Object</code> is the root of the class hierarchy.\n"
-            + " Every class has <code>Object</code> as a superclass. All objects,\n"
-            + " including arrays, implement the methods of this class.</div>";
-    //        String code = "<code><b><i>HEY</i>BOLD</b></code> <input type=\"checkbox\" name=\"Kenntnisse_in\" value=\"HTML\" checked=\"checked\">";
-    MapperCollection collection = new MapperCollection();
-    for (StandardMappers standardMappers : StandardMappers.values()) {
-      collection.addMapper(standardMappers);
-    }
-
-    HtmlConverter converter = new HtmlConverter(code, collection);
-    String result = converter
-        .parse("https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/potion/PotionEffectType.html");
-    System.out.println("Result is: " + result);
+  public HtmlConverter setSilentlyIgnoreUnknownTags(boolean ignore) {
+    silentlyIgnoreUnknownTags = ignore;
+    return this;
   }
 }

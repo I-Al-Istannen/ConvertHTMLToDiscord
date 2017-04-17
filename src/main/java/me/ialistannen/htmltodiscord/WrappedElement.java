@@ -15,12 +15,16 @@ public class WrappedElement {
   private ContextMetadata metadata;
   private Element wrapped;
 
+  private boolean silentlyIgnoreUnknownTags;
+
   public WrappedElement(Element element, ConverterStorage converterStorage,
-      MapperCollection mappers, ContextMetadata metadata) {
+      MapperCollection mappers, ContextMetadata metadata,
+      boolean silentlyIgnoreUnknownTags) {
     this.wrapped = element;
     this.converterStorage = converterStorage;
     this.mappers = mappers;
     this.metadata = metadata;
+    this.silentlyIgnoreUnknownTags = silentlyIgnoreUnknownTags;
   }
 
   public Element getWrapped() {
@@ -83,10 +87,13 @@ public class WrappedElement {
 
   private String replace(String content) {
     Optional<Mapper> mapperOptional = mappers.getMapper(this);
-    Mapper mapper = mapperOptional
-        .orElseThrow(() -> new IllegalArgumentException(
-            "No mapper for tag '" + wrapped.tagName() + "' found.\n" + wrapped.outerHtml()));
-
-    return mapper.convert(content, this);
+    if (mapperOptional.isPresent()) {
+      return mapperOptional.get().convert(content, this);
+    }
+    if (silentlyIgnoreUnknownTags) {
+      return content;
+    }
+    throw new IllegalArgumentException(
+        "No mapper for tag '" + wrapped.tagName() + "' found.\n" + wrapped.outerHtml());
   }
 }
